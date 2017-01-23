@@ -9,29 +9,30 @@ import sys
 def numpy_dll_paths_fix():
     paths = set()
     np_path = numpy.__path__[0]
-    for dirpath, _, filenames in os.walk(np_path):
-        for item in filenames:
+    for dir_path, _, file_names in os.walk(np_path):
+        for item in file_names:
             if item.endswith('.dll'):
-                paths.add(dirpath)
+                paths.add(dir_path)
 
     sys.path.append(*list(paths))
 
 numpy_dll_paths_fix()
 
 setup(
-    name='PDFSummarizer',
+    name='REST_PDF_Summarizer',
     version='1.0',
-    console=['PDFsummarizer.py'],
+    console=['run_rest_api.py'],
     url='',
     license='',
-    author='Varin_S',
+    author='OECD',
     author_email='',
-    description='',
+    description='REST service used to generate summaries from pdf files.',
     options={
             "py2exe": {
-                    "excludes": ["Tkconstants", "Tkinter", "tcl"]
+                    "excludes": ["Tkconstants", "Tkinter", "tcl", "jinja2.asyncsupport"]
                 }
         },
     data_files=[('stopwords', ['data/stopwords/english.txt', 'data/stopwords/french.txt']),
-                ('config', ['config/pdfsummarizer.conf'])]
+                ('config', ['config/pdfsummarizer.conf']),
+                ('static', ['static/index.html'])]
     )
