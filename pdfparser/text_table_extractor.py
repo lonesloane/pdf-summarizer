@@ -139,7 +139,8 @@ def find_table_cells(cells):
     if len(candidate_row.cells) > 2:
         table.add_row(candidate_row)
 
-    cells = [cell for table in tables for cell in table.candidate_cells(global_cell.get_width())]
+    #cells = [cell for table in tables for cell in table.candidate_cells(global_cell.get_width())]
+    cells = (cell for table in tables for cell in table.candidate_cells(global_cell.get_width()))
     return cells
 
 

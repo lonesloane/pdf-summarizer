@@ -2,8 +2,11 @@ import ConfigParser
 import logging
 
 # Get configuration parameters
+import os
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 _config = ConfigParser.SafeConfigParser()
-_config.read('config/pdfsummarizer.conf')
+_config.read(os.path.join(basedir, 'pdfsummarizer.conf'))
 
 # Set appropriate logging level
 logging_level = getattr(logging, _config.get('LOGGING', 'level').upper(), None)

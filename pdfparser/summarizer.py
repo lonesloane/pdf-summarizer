@@ -24,7 +24,8 @@ class PDFSummarizer:
         pass
 
     def generate_summary(self, pdf_sentences):
-        pdf_string = '\n'.join([sentence.encode('utf-8') for sentence in pdf_sentences])
+        # pdf_string = '\n'.join([sentence.encode('utf-8') for sentence in pdf_sentences])
+        pdf_string = '\n'.join((sentence.encode('utf-8') for sentence in pdf_sentences))
         parser = PlaintextParser.from_string(pdf_string, Tokenizer(LANGUAGE))
         stemmer = Stemmer(LANGUAGE)
 

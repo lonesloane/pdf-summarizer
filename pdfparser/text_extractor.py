@@ -43,6 +43,9 @@ class OutputFormat:
 class PDFTextExtractor:
 
     def __init__(self, report=None, single_page=None, logger=None):
+        # todo: review this dynamic import
+        if not logger:
+            from pdfparser import logger
         self.logger = logger
         self.filter_tables = _config.getboolean('MAIN', 'filter_tables')
 
@@ -480,8 +483,8 @@ class PDFTextExtractor:
     def strip_paragraph_numbers(self, fragment_txt):
         filter_paragraph_lead_numbers = re.compile('((^|\n)([0-9]+\.)+[0-9]{0,3}\W?)')
         filter_paragraph_inserted_numbers = re.compile('((?<=\n)\W?([0-9]+\.)+(?![A-Z]))')
-        for i in range(0, len(fragment_txt)):
-            txt = fragment_txt[i].strip()
+        for i, txt in enumerate(fragment_txt):
+            txt = txt.strip()
             # remove paragraph numbers, e.g. "23."
             # sometimes wrongly inserted within the text from incorrect layout analysis
             result = re.sub(filter_paragraph_lead_numbers, ' ', txt)
@@ -535,8 +538,8 @@ class PDFTextExtractor:
         ptrn_classif = re.compile('For Official Use|Confidential|Unclassified|A Usage Officiel|'
                                   'Confidentiel|Non classifié', re.IGNORECASE)
         classif_idx = None
-        for i in range(0, len(fragment_txt)-1):
-            txt = fragment_txt[i].strip()
+        for i, txt in enumerate(fragment_txt):
+            txt = txt.strip()
             if re.search(ptrn_classif, txt):
                 self.logger.debug('found classification at index: {i}'.format(i=i))
                 classif_idx = i
@@ -556,8 +559,8 @@ class PDFTextExtractor:
         # ptrn_cote = re.compile('[\w]+/[[\w/]+]?\(\d{2,4}\)\d*.*|[\w]+\(\d{2,4}\)\d*.*')
         ptrn_cote = re.compile('([\w]+?[\(\)/0-9]+[\w]*?)+')
         cote_idx = None
-        for i in range(0, len(fragment_txt)-1):
-            txt = fragment_txt[i].strip()
+        for i, txt in enumerate(fragment_txt):
+            txt = txt.strip()
             if re.search(ptrn_cote, txt):
                 self.logger.debug('found cote at index: {i}'.format(i=i))
                 cote_idx = i
@@ -577,16 +580,15 @@ class PDFTextExtractor:
         :return:
         """
         page_number_idx = None
-        for i in range(len(fragment_txt)-1, 0, -1):
-            txt = fragment_txt[i].strip()
+        for i, txt in enumerate(fragment_txt[-1::-1]):
+            txt = txt.strip()
             if re.match('\s*?\d+\s*?', txt):
                 self.logger.debug(u'found page number at index: {i} text:{t}'.format(i=i, t=txt))
                 page_number_idx = i
                 break
             if len(txt) > 0:
                 break  # only strip out the first occurrence of a number before any actual text
-        fragment_txt = fragment_txt[:page_number_idx]
-        return fragment_txt
+        return fragment_txt[:-page_number_idx-1:]
 
     def re_order_text(self, txt):
         txt = sorted(txt)
@@ -596,7 +598,8 @@ class PDFTextExtractor:
             self.logger.debug('-' * 20)
             for elem in txt:
                 self.logger.debug('{elem}'.format(elem=elem))
-        return [str_array for _, _, str_array in txt]
+        # return [str_array for _, _, str_array in txt]
+        return (str_array for _, _, str_array in txt)
 
     def remove_empty_lines(self, fragment_txt):
         result = list()

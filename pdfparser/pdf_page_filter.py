@@ -21,6 +21,8 @@ class PDFPageFilter:
 
         :param report:
         """
+        if not logger:
+            from pdfparser import logger
         self.logger = logger
         self.__TEXT_MIN_FRACTION_SIZE = _config.getfloat('MAIN', 'TEXT_MIN_FRACTION_SIZE')
         self.__MIN_NUMBER_ROWS = _config.getfloat('MAIN', 'MIN_NUMBER_ROWS')
@@ -489,15 +491,15 @@ class PDFPageFilter:
             self.logger.debug(u'nb candidate cells found: {nb}'.format(nb=len(outer_edges)))
             self.logger.debug(u'Before table filtering, length of page text:{len}'.format(len=len(page_txt)))
 
-        if len(outer_edges):
-            for cell in outer_edges:
-                if _log_level > 1:
-                    self.logger.debug((u'removing cell: {cell.x0} {cell.y0} {cell.x1} {cell.y1} - {c}')
-                                 .format(cell=cell, c=page_txt[(cell.x0, cell.y0, cell.x1, cell.y1)]))
-                page_txt.pop((cell.x0, cell.y0, cell.x1, cell.y1))
-
+        #if len(outer_edges):
+        for cell in outer_edges:
             if _log_level > 1:
-                self.logger.debug(u'After table filtering, length of page text:{len}'.format(len=len(page_txt)))
+                self.logger.debug((u'removing cell: {cell.x0} {cell.y0} {cell.x1} {cell.y1} - {c}')
+                             .format(cell=cell, c=page_txt[(cell.x0, cell.y0, cell.x1, cell.y1)]))
+            page_txt.pop((cell.x0, cell.y0, cell.x1, cell.y1))
+
+        if _log_level > 1:
+            self.logger.debug(u'After table filtering, length of page text:{len}'.format(len=len(page_txt)))
 
         if _log_level > 1:
             self.logger.debug('[Exit filter_text_tables]')
