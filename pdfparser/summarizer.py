@@ -16,6 +16,7 @@ PDF_ROOT_FOLDER = os.path.join(PROJECT_FOLDER, 'pdfs')
 LANGUAGE = "english"  # TODO: identify pdf language
 # TODO: make parameter based on length of submitted text
 SENTENCES_COUNT = _config.getfloat('MAIN', 'SENTENCES_COUNT')
+STOP_WORDS_FOLDER = _config.get('SUMMARIZER', 'STOP_WORDS_FOLDER')
 
 
 class PDFSummarizer:
@@ -36,7 +37,7 @@ class PDFSummarizer:
 
 
 def get_stop_words(language):
-    with open("stopwords/english.txt") as open_file:
+    with open(os.path.join(STOP_WORDS_FOLDER, "english.txt")) as open_file:
         return parse_stop_words(open_file.read())
 
 
