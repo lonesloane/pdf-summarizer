@@ -1,6 +1,7 @@
 #!env/bin/python2.7
 import re
 import sys
+import platform
 import os
 import argparse
 import logging
@@ -54,34 +55,23 @@ def parse_folders():
     """
     nb_processed_files = 0
     for root, dirs, files_list in os.walk(get_pdf_folder()):
-        print('root: {}'.format(root))
-        print('dirs: {}'.format(dirs))
-        print('files_list: {}'.format(files_list))
         for pdf_file in files_list:
-            print('pdf_file: {}'.format(os.path.join(root, pdf_file)))
             if os.path.isfile(os.path.join(root, pdf_file)):
-                print('is file: true')
                 jt, extension = pdf_file.split('.')[0], pdf_file.split('.')[1]
-                print('jt: {} - extension: {}'.format(jt, extension))
                 if extension.lower() != 'pdf':
-                    print('not a pdf')
+                    logger.debug('{} is not a pdf'.format(pdf_file))
                     continue
-                else:
-                    print('processing pdf')
                 pdf_path = os.path.join(root, pdf_file)
-                print('pdf_path: {}'.format(pdf_path))
-                folder_structure = ''
-                if '\\' in folder_structure:
+                folder_structure = root
+                if '\\' in root:
                     folder_structure = root[2:].replace('\\', "_")
-                    print('folder_structure: {}'.format(folder_structure))
-                else:
-                    print('folder_structure: {}'.format(folder_structure))
+                logger.debug('folder_structure: {}'.format(folder_structure))
                 nb_processed_files += 1
                 if nb_processed_files % 100 == 0:
                     logger.info('{} files analyzed...'.format(nb_processed_files))
                 yield (jt, folder_structure, pdf_path)
             else:
-                print('is file: false')
+                logger.debug('{}/{} is not a file'.format(root, pdf_file))
 
 
 def get_pdf_folder():
@@ -259,5 +249,6 @@ def extract_sentences(pdf_text):
 
 
 if __name__ == '__main__':
-    #freeze_support()  # required on windows platform to allow multi-processing
+    if platform.system() == 'Windows':
+        freeze_support()  # required on windows platform to allow multi-processing
     sys.exit(generate_summaries())
