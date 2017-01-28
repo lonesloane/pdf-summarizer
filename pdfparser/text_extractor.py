@@ -588,6 +588,9 @@ class PDFTextExtractor:
                 break
             if len(txt) > 0:
                 break  # only strip out the first occurrence of a number before any actual text
+        if not page_number_idx:
+            page_number_idx = -len(fragment_txt)+1
+            self.logger.error('Page_Number_Idx is NONE!!!')
         return fragment_txt[:-page_number_idx-1:]
 
     def re_order_text(self, txt):
@@ -598,8 +601,8 @@ class PDFTextExtractor:
             self.logger.debug('-' * 20)
             for elem in txt:
                 self.logger.debug('{elem}'.format(elem=elem))
-        # return [str_array for _, _, str_array in txt]
-        return (str_array for _, _, str_array in txt)
+        return [str_array for _, _, str_array in txt]
+        # return (str_array for _, _, str_array in txt)
 
     def remove_empty_lines(self, fragment_txt):
         result = list()

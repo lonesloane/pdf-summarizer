@@ -1,12 +1,15 @@
+import os
+import platform
 import ConfigParser
 import logging
 
 # Get configuration parameters
-import os
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 _config = ConfigParser.SafeConfigParser()
-_config.read(os.path.join(basedir, 'config/pdfsummarizer.conf'))
+if platform.system() == 'Windows':
+    _config.read(os.path.join(basedir, 'config/pdfsummarizer.conf'))
+if platform.system() == 'Linux':
+    _config.read('config/linux-pdfsummarizer.conf')
 
 # Set appropriate logging level
 logging_level = getattr(logging, _config.get('LOGGING', 'level').upper(), None)
@@ -25,3 +28,4 @@ logger.addHandler(ch)
 _log_level = 1  # verbosity of log. 1:debug - 2:verbose - 3:visual
 
 logger.info('Logging object initialized with log level {level}'.format(level=_log_level))
+logger.info('basedir: {}'.format(basedir))

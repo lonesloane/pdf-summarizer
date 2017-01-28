@@ -65,6 +65,8 @@ def parse_folders():
                 folder_structure = root
                 if '\\' in root:
                     folder_structure = root[2:].replace('\\', "_")
+                else:
+                    folder_structure = ''
                 logger.debug('folder_structure: {}'.format(folder_structure))
                 nb_processed_files += 1
                 if nb_processed_files % 100 == 0:
@@ -94,7 +96,7 @@ def generate_summary(info):
     """
     jt, folder_structure, pdf_path = info[0], info[1], info[2]
     proc_logger, log_file_handler = configure_logger()
-    output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.pdf'
+    output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.txt'
     with open(output_file, mode='wb') as out_file:
         log_begin_process(jt, pdf_path, proc_logger)
         try:
