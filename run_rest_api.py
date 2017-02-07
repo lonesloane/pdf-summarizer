@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!env/bin/python2.7
 import os
 from rest import app as rest_api
 from pdfparser import _config

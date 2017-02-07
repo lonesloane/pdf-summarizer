@@ -1,4 +1,3 @@
-#!/usr/bin/python2.7
 import logging
 import os
 import re
@@ -100,6 +99,8 @@ def generate(pdf_path):
 
         extractor = text_extractor.PDFTextExtractor(logger=logger)
         json_result = extractor.extract_text(pdf_file_path, mode=EXTRACT_MODE)
+        logger.debug("Extracted text:")
+        logger.debug(json_result)
         pdf_txt = get_text_from_json(json_result)
         sentences = extract_sentences(pdf_txt)
         logger.debug("Nb sentences extracted: {}".format(len(sentences)))

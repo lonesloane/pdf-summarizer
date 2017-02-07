@@ -160,18 +160,16 @@ class PDFTextExtractor:
                 self.logger.info("-"*20)
                 pages = self.parse_pages(doc)
 
-                page_nb = 0
                 fragment_type = FragmentType.UNKNOWN
-                if self.single_page != -1:  # TODO: figure out why I had implemented this condition???
+                if self.single_page != -1:  # TODO: See if single page extraction is still working...
                     fragment_type = FragmentType.TEXT
-                for page_text, page_cells in pages:
+                for page_nb, (page_text, page_cells) in enumerate(pages):
                     if self.single_page != -1:
                         page_nb = self.single_page+1
                     self.logger.debug('-'*20)
                     self.logger.debug('Processing page {page_nb}'.format(page_nb=page_nb))
                     self.logger.debug('-'*20)
                     fragment_type = self.process_page(page_text, page_cells, fragment_type, page_nb)
-                    page_nb += 1
                 # Add any leftover text
                 if self.previous_p:
                     self.contents[FragmentType.TEXT].extend({self.previous_p})
@@ -590,7 +588,7 @@ class PDFTextExtractor:
                 break  # only strip out the first occurrence of a number before any actual text
         if not page_number_idx:
             page_number_idx = -len(fragment_txt)+1
-            self.logger.error('Page_Number_Idx is NONE!!!')
+            self.logger.error('Page_Number_Idx is 0 or NONE: {}'.format(page_number_idx))
         return fragment_txt[:-page_number_idx-1:]
 
     def re_order_text(self, txt):

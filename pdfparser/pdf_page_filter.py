@@ -486,10 +486,12 @@ class PDFPageFilter:
 
         outer_edges = text_table_extractor.find_table_cells(text_cells) if len(text_cells) > 1 else []
 
+        '''
         if _log_level > 1:
             self.logger.debug('outer edges\n{oe}'.format(oe=outer_edges))
             self.logger.debug(u'nb candidate cells found: {nb}'.format(nb=len(outer_edges)))
             self.logger.debug(u'Before table filtering, length of page text:{len}'.format(len=len(page_txt)))
+        '''
 
         #if len(outer_edges):
         for cell in outer_edges:
