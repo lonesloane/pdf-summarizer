@@ -214,7 +214,6 @@ class PdfPageFilterTestCase(unittest.TestCase):
         actual = filter.PDFPageFilter().match_classification(txt)
         self.assertEqual(expected, actual, "Shouldn't match classification pattern")
 
-
     def test_match_cote(self):
         txt_0 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n '
         txt_1 = '\n Consulares nobilitarunt et praefecturae.'
