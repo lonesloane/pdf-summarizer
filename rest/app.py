@@ -2,7 +2,8 @@ import logging
 import os
 import re
 
-import sys
+from logging.handlers import TimedRotatingFileHandler
+
 from flask import Flask, jsonify, abort, request, make_response
 from json.decoder import JSONDecoder
 
@@ -11,13 +12,13 @@ import pdfparser.summarizer as pdfsummarizer
 import pdfparser.text_extractor as text_extractor
 from pdfparser import logger, _config
 
-# create logging file handler
-fh = logging.FileHandler(os.path.join(_config.get('LOGGING', 'output_dir'), 'rest_pdf_summarizer.log'), mode='ab')
+fh = TimedRotatingFileHandler(filename=os.path.join(_config.get('LOGGING', 'output_dir'), 'rest_pdf_summarizer.log'),
+                              when='D',
+                              interval=1,
+                              backupCount=30)
 fh.setLevel(logging.DEBUG)
-# create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 fh.setFormatter(formatter)
-# add the handlers to the logger
 logger.addHandler(fh)
 
 
