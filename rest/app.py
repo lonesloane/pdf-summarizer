@@ -76,9 +76,12 @@ def generate_summary():
 
     document_path = request.json['document_path']
     logging.info('get_document_details for: ' + document_path)
-    summary = generate(document_path)
-    return jsonify({'result': {'document_path': document_path,
-                               'summary': summary}})
+    try:
+        summary = generate(document_path)
+        return jsonify({'result': {'document_path': document_path,
+                                   'summary': summary}})
+    except Exception as ex:
+        abort(400)
 
 
 def generate(pdf_path):
@@ -95,8 +98,15 @@ def generate(pdf_path):
     logger.info('Processing file {jt}'.format(jt=pdf_path))
     logger.info('found at {pdf_path}'.format(pdf_path=pdf_path))
     logger.info('=' * 40)
+
     try:
+        # First check if summary was already generated
+        summary = load_saved_summary(pdf_path)
+        if summary:
+            return summary
+
         pdf_file_path = os.path.join(PDF_ROOT_FOLDER, pdf_path)
+        logger.debug('Complete file path: {}'.format(pdf_file_path))
 
         extractor = text_extractor.PDFTextExtractor(logger=logger)
         json_result = extractor.extract_text(pdf_file_path, mode=EXTRACT_MODE)
@@ -107,17 +117,50 @@ def generate(pdf_path):
         logger.debug("Nb sentences extracted: {}".format(len(sentences)))
         summarizer = pdfsummarizer.PDFSummarizer()
         results = summarizer.generate_summary(sentences)
-        summary = '\n'.join([sentence._text.encode('utf-8') for sentence in results])
-        logger.debug('summary:' + summary)
+        summary = results
+        logger.debug('summary:' + ''.join(summary)  )
+        try:
+            save_summary(pdf_path, summary)
+        except Exception as ex:
+            logger.exception('[EXCEPTION] while saving summary: {}'.format(ex))
         return summary
 
     except Exception as ex:
         logger.exception("[EXCEPTION] while processing file {}\n{}".format(pdf_path, ex))
-        return ex.message
+        raise ex
     finally:
         logger.info('-' * 20)
         logger.info('End processing file {jt}'.format(jt=pdf_path))
         logger.info('-' * 20)
+
+
+def load_saved_summary(pdf_path):
+    summary = None
+    if not os.path.isfile(os.path.join('out', pdf_path)):
+        logger.debug('Previously generated summary not found for {}'.format(os.path.join('out', pdf_path)))
+        return None
+    logger.debug('Previously generated summary found for {}'.format(pdf_path))
+    with open(os.path.join('out', pdf_path), mode='rb') as in_file:
+        summary = in_file.read()
+    return summary
+
+
+def save_summary(pdf_path, summary):
+    create_folders(pdf_path)
+    with open(os.path.join(os.getcwd(), 'out', pdf_path), mode='wb') as out_file:
+        out_file.write(summary)
+
+
+def create_folders(pdf_path):
+    complete_folder = os.path.join(os.getcwd(), 'out')
+    folder_structure = pdf_path.split('/')
+    for folder in folder_structure[:-1]:
+        complete_folder += '/' + folder
+        if os.path.exists(complete_folder):
+            logger.debug('{} already exists'.format(complete_folder))
+        else:
+            logger.debug('{} does not exist. Creating.'.format(complete_folder))
+            os.mkdir(complete_folder)
 
 
 def extract_sentences(pdf_text):
@@ -151,6 +194,8 @@ def concat_with_punctuation(frag):
     """
     ptrn_punct = '[.!?:]'
     frag = frag.strip()
+    if not frag or len(frag) <= 0:
+        return frag
     if not re.match(ptrn_punct, frag[-1]):
         frag += '.'
     frag += '\n'
@@ -159,4 +204,3 @@ def concat_with_punctuation(frag):
 
 if __name__ == '__main__':
     pass
-    # app.run(debug=True, port=int(os.environ.get("PORT", 3000)))

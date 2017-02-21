@@ -214,6 +214,8 @@ class PDFTextExtractor:
         """Iterate through the list of LT* objects and capture the text data contained in each"""
 
         self.minx0 = None
+        txt_x0 = None
+        txt_x1 = None
 
         global rec_def, text_def
         if _log_level > 2:
@@ -262,9 +264,9 @@ class PDFTextExtractor:
                 if _log_level > 1:
                     self.logger.debug('Unknown object type: ' + str(type(lt_obj)))
 
-            if not self.minx0 or txt_x0 < self.minx0:
+            if not self.minx0 or (txt_x0 and txt_x0 < self.minx0):
                 self.minx0 = txt_x0
-            if not self.maxx1 or txt_x1 > self.maxx1:
+            if not self.maxx1 or (txt_x1 and txt_x1 > self.maxx1):
                 self.maxx1 = txt_x1
 
         if _log_level > 2:
@@ -347,7 +349,8 @@ class PDFTextExtractor:
             # TODO: make the actual definition of what is a "table" clearer!
             self.pdf_filter.filter_text_tables(page_txt)
             if page_cells and self.filter_tables:
-                self.pdf_filter.filter_notes(page_txt, page_cells, self.minx0, self.maxx1)
+                if self.minx0 and self.maxx1:  # TODO: should not be necessary, something else is wrong !
+                    self.pdf_filter.filter_notes(page_txt, page_cells, self.minx0, self.maxx1)
                 self.pdf_filter.filter_tables(page_txt, page_cells)
 
             # Default: plain simple text

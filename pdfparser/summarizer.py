@@ -14,8 +14,7 @@ from pdfparser import _config
 PROJECT_FOLDER = _config.get('MAIN', 'project_folder')
 PDF_ROOT_FOLDER = os.path.join(PROJECT_FOLDER, 'pdfs')
 LANGUAGE = "english"  # TODO: identify pdf language
-# TODO: make parameter based on length of submitted text
-SENTENCES_COUNT = _config.getfloat('MAIN', 'SENTENCES_COUNT')
+SENTENCES_COUNT = _config.getfloat('MAIN', 'SENTENCES_COUNT')  # TODO: make parameter based on length of submitted text
 STOP_WORDS_FOLDER = _config.get('SUMMARIZER', 'STOP_WORDS_FOLDER')
 
 
@@ -25,7 +24,9 @@ class PDFSummarizer:
         pass
 
     def generate_summary(self, pdf_sentences):
-        # pdf_string = '\n'.join([sentence.encode('utf-8') for sentence in pdf_sentences])
+        if len(pdf_sentences) < SENTENCES_COUNT:
+            print('Less than {} sentences extracted, returning entire text'.format(SENTENCES_COUNT))
+            return pdf_sentences
         pdf_string = '\n'.join((sentence.encode('utf-8') for sentence in pdf_sentences))
         parser = PlaintextParser.from_string(pdf_string, Tokenizer(LANGUAGE))
         stemmer = Stemmer(LANGUAGE)
@@ -34,6 +35,7 @@ class PDFSummarizer:
         summarizer.stop_words = get_stop_words(LANGUAGE)
         summary = summarizer(parser.document, SENTENCES_COUNT)
         summary = remove_repetition(summary)
+        summary = '\n'.join([sentence._text.encode('utf-8') for sentence in summary])
         return summary
 
 
