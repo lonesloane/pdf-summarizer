@@ -27,7 +27,7 @@ logger.addHandler(fh)
 """
 
 PDF_ROOT_FOLDER = _config.get('SUMMARIZER', 'PDF_ROOT_FOLDER')
-OUTPUT_FOLDER = _config.get('SUMMARIZER', 'OUTPUT_FOLDER')
+OUTPUT_FOLDER = _config.get('REST', 'OUTPUT_FOLDER')
 EXTRACT_MODE = text_extractor.ExtractMode.LAYOUT
 EXTRACT_SUMMARY = _config.getboolean('SUMMARIZER', 'EXTRACT_SUMMARY')
 NB_PROCESSES = _config.getint('SUMMARIZER', 'NB_PROCESSES')
@@ -136,23 +136,23 @@ def generate(pdf_path):
 
 def load_saved_summary(pdf_path):
     summary = None
-    if not os.path.isfile(os.path.join('out', pdf_path)):
-        logger.debug('Previously generated summary not found for {}'.format(os.path.join('out', pdf_path)))
+    if not os.path.isfile(os.path.join(OUTPUT_FOLDER, pdf_path)):
+        logger.debug('Previously generated summary not found for {}'.format(os.path.join(OUTPUT_FOLDER, pdf_path)))
         return None
     logger.debug('Previously generated summary found for {}'.format(pdf_path))
-    with open(os.path.join('out', pdf_path), mode='rb') as in_file:
+    with open(os.path.join(OUTPUT_FOLDER, pdf_path), mode='rb') as in_file:
         summary = in_file.read()
     return summary
 
 
 def save_summary(pdf_path, summary):
     create_folders(pdf_path)
-    with open(os.path.join(os.getcwd(), 'out', pdf_path), mode='wb') as out_file:
+    with open(os.path.join(OUTPUT_FOLDER, pdf_path), mode='wb') as out_file:
         out_file.write(summary)
 
 
 def create_folders(pdf_path):
-    complete_folder = os.path.join(os.getcwd(), 'out')
+    complete_folder = OUTPUT_FOLDER
     folder_structure = pdf_path.split('/')
     for folder in folder_structure[:-1]:
         complete_folder += '/' + folder

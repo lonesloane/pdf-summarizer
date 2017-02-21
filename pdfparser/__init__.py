@@ -5,10 +5,13 @@ import logging
 
 # Get configuration parameters
 basedir = os.path.abspath(os.path.dirname(__file__))
+print('basedir: {}'.format(basedir))
 _config = ConfigParser.SafeConfigParser()
 if platform.system() == 'Windows':
-    _config.read(os.path.join(basedir, 'config/pdfsummarizer.conf'))
+    print('WINDOWS: {}'.format(os.path.join(basedir, 'config\pdfsummarizer.conf')))
+    _config.read(os.path.join(basedir, 'config\pdfsummarizer.conf'))
 if platform.system() == 'Linux':
+    print('LINUX')
     _config.read('config/linux-pdfsummarizer.conf')
 
 # Set appropriate logging level
