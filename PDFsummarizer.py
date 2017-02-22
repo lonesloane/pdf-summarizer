@@ -237,6 +237,8 @@ def concat_with_punctuation(frag):
     """
     ptrn_punct = '[.!?:]'
     frag = frag.strip()
+    if not frag or len(frag) <= 0:
+        return frag
     if not re.match(ptrn_punct, frag[-1]):
         frag += '.'
     frag += '\n'
