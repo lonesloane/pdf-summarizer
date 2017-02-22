@@ -581,18 +581,16 @@ class PDFTextExtractor:
         :return:
         """
         page_number_idx = None
-        for i, txt in enumerate(fragment_txt[-1::-1]):
-            txt = txt.strip()
+        for i in range(len(fragment_txt)-1, 0, -1):
+            txt = fragment_txt[i].strip()
             if re.match('\s*?\d+\s*?', txt):
                 self.logger.debug(u'found page number at index: {i} text:{t}'.format(i=i, t=txt))
                 page_number_idx = i
                 break
             if len(txt) > 0:
                 break  # only strip out the first occurrence of a number before any actual text
-        if not page_number_idx:
-            page_number_idx = -len(fragment_txt)+1
-            self.logger.error('Page_Number_Idx is 0 or NONE: {}'.format(page_number_idx))
-        return fragment_txt[:-page_number_idx-1:]
+        fragment_txt = fragment_txt[:page_number_idx]
+        return fragment_txt
 
     def re_order_text(self, txt):
         txt = sorted(txt)
