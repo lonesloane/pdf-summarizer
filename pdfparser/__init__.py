@@ -8,10 +8,11 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 print('basedir: {}'.format(basedir))
 _config = ConfigParser.SafeConfigParser()
 if platform.system() == 'Windows':
-    print('WINDOWS: {}'.format(os.path.join(basedir, 'config\pdfsummarizer.conf')))
-    _config.read(os.path.join(basedir, 'config\pdfsummarizer.conf'))
+    if '.zip' not in basedir:
+        _config.read(os.path.join(basedir, 'config\pdfsummarizer.conf'))
+    else:
+        _config.read(os.path.join('config\pdfsummarizer.conf'))
 if platform.system() == 'Linux':
-    print('LINUX')
     _config.read(os.path.join(basedir, 'config/linux-pdfsummarizer.conf'))
 
 # Set appropriate logging level
@@ -28,6 +29,6 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 ch.setFormatter(formatter)
 # add the handlers to the logger
 logger.addHandler(ch)
-_log_level = 2  # verbosity of log. 1:debug - 2:verbose - 3:visual
+_log_level = 1  # verbosity of log. 1:debug - 2:verbose - 3:visual
 
 logger.info('Logging object initialized with log level {level}'.format(level=_log_level))

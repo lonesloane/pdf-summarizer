@@ -33,5 +33,5 @@ setup(
                 }
         },
     data_files=[('stopwords', ['data/stopwords/english.txt', 'data/stopwords/french.txt']),
-                ('config', ['config/pdfsummarizer.conf'])]
+                ('config', ['pdfparser/config/pdfsummarizer.conf'])]
     )

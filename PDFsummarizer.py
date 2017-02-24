@@ -22,8 +22,10 @@ EXTRACT_MODE = text_extractor.ExtractMode.LAYOUT
 EXTRACT_SUMMARY = _config.getboolean('SUMMARIZER', 'EXTRACT_SUMMARY')
 NB_PROCESSES = _config.getint('SUMMARIZER', 'NB_PROCESSES')
 CHUNK_SIZE = _config.getint('SUMMARIZER', 'CHUNK_SIZE')
+FAILED_SUMMARY_FOLDER = _config.get('SUMMARIZER', 'FAILED_SUMMARY_FOLDER')
 
-target, start_folder = None, None
+target, start_folder, year = 'rest', None, None
+
 
 def generate_summaries():
     """
@@ -40,7 +42,7 @@ def generate_summaries():
     try:
         logger.info('Begin processing files. Chunk size = {}'.format(CHUNK_SIZE))
         # TODO: there's got to be a better way than this!!!
-        for _ in pool.imap_unordered(generate_summary, parse_folders(start_folder), chunksize=CHUNK_SIZE):
+        for _ in pool.imap_unordered(generate_summary, generate_files_list(), chunksize=CHUNK_SIZE):
             pass
     finally:
         #  Always good practice to do a little cleanup
@@ -76,9 +78,9 @@ def generate_summary(info):
             out_file.write(results)
 
             log_end_process(jt, proc_logger)
-        except Exception:
+        except Exception as ex:
             print('exception!!!')
-            proc_logger.exception("[EXCEPTION] while processing file {}".format(jt))
+            proc_logger.exception("[EXCEPTION] while processing file {} - {}".format(jt, ex.message))
         finally:
             # Required to avoid race conditions where the next "iteration" of the process tries to write
             # in the log file before the previous process is done working with it...
@@ -94,7 +96,7 @@ def get_output_file(info):
         output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.json'
     elif target == 'rest':
         complete_folder = create_folders(folder_structure)
-        output_file = os.path.join(complete_folder, jt + '.json')
+        output_file = os.path.join(complete_folder, jt + '.pdf')
     else:
         raise Exception('Invalid target value. Unable to generate output file')
     return output_file
@@ -104,7 +106,7 @@ def create_folders(pdf_path):
     complete_folder = REST_OUTPUT_FOLDER
     folder_structure = pdf_path.split('_')
     for folder in folder_structure:
-        complete_folder += '/' + folder
+        complete_folder = os.path.join(complete_folder, folder)
         if os.path.exists(complete_folder):
             logger.debug('{} already exists'.format(complete_folder))
         else:
@@ -114,7 +116,30 @@ def create_folders(pdf_path):
     return complete_folder
 
 
-def parse_folders(start_folder=None):
+def generate_files_list():
+    if target != 'rest':
+        return parse_folders()
+    else:
+        return parse_files()
+
+
+def parse_files():
+    logger.info('Parsing failed summaries files list in folder {}'.format(FAILED_SUMMARY_FOLDER))
+    for input_file in os.listdir(FAILED_SUMMARY_FOLDER):
+        logger.info('failed summaries file: {}'.format(input_file))
+        file_year = int(input_file.split('.')[0])
+        if year and file_year != year:
+            continue
+        with open(os.path.join(FAILED_SUMMARY_FOLDER, input_file), 'rb') as input_list:
+            for file_path in input_list:
+                file_path = file_path.replace('\\\\', '\\').rstrip()
+                components = file_path.split('\\')
+                jt = components[3].split('.')[0]
+                folder_structure = '_'.join(components[:3])
+                yield (jt, folder_structure, file_path)
+
+
+def parse_folders():
     """
     Generator function which produces information about the pdf files found under PDF_ROOT_FOLDER
 
@@ -122,7 +147,7 @@ def parse_folders(start_folder=None):
     :return: Tuple (jt, folder_structure, pdf_path)
     """
     nb_processed_files = 0
-    for root, dirs, files_list in os.walk(get_pdf_folder(start_folder)):
+    for root, dirs, files_list in os.walk(get_pdf_folder()):
         for pdf_file in files_list:
             if os.path.isfile(os.path.join(root, pdf_file)):
                 jt, extension = pdf_file.split('.')[0], pdf_file.split('.')[1]
@@ -146,7 +171,7 @@ def parse_folders(start_folder=None):
                 logger.debug('{}/{} is not a file'.format(root, pdf_file))
 
 
-def get_pdf_folder(start_folder=None):
+def get_pdf_folder():
     pdf_folder = PDF_ROOT_FOLDER
     if start_folder:
         pdf_folder = os.path.join(PDF_ROOT_FOLDER, start_folder)
@@ -185,18 +210,21 @@ def get_arguments():
     Folder: appended to the PDF_ROOT_FOLDER to allow for more "selective" runs
     :return:
     """
-
-    target, folder = None, None
+    target, folder, year = None, None, None
     parser = argparse.ArgumentParser(
         description='Generate summaries for pdf files in specified folder and sub-folders'
     )
     # Target, i.e. Rest Service or Bulk Import
     parser.add_argument(
-        '-t', '--target', type=str, help='Target mode: rest (default) or bulk', required=False
+        '-t', '--target', type=str, help='Target mode: rest (default) or bulk', required=False, default='rest'
     )
     # PDFs folder
     parser.add_argument(
         '-f', '--folder', type=str, help='Root folder for pdf files', required=False
+    )
+    # Year
+    parser.add_argument(
+        '-y', '--year', type=int, help='Restrict processing to given year', required=False
     )
     args = parser.parse_args()
     if args.folder:
@@ -205,7 +233,10 @@ def get_arguments():
     if args.target:
         target = args.target
         logger.info("Target argument: {}".format(target))
-    return target, folder
+    if args.year:
+        year = args.year
+        logger.info("Year argument: {}".format(year))
+    return target, folder, year
 
 
 def log_end_process(jt, proc_logger):
@@ -293,5 +324,5 @@ if __name__ == '__main__':
     if platform.system() == 'Windows':
         freeze_support()  # required on windows platform to allow multi-processing
 
-    target, start_folder = get_arguments()
+    target, start_folder, year = get_arguments()
     sys.exit(generate_summaries())

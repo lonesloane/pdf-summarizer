@@ -26,7 +26,8 @@ class PDFSummarizer:
     def generate_summary(self, pdf_sentences):
         if len(pdf_sentences) < SENTENCES_COUNT:
             print('Less than {} sentences extracted, returning entire text'.format(SENTENCES_COUNT))
-            return pdf_sentences
+            summary = '\n'.join([sentence.encode('utf-8') for sentence in pdf_sentences])
+            return summary
         pdf_string = '\n'.join((sentence.encode('utf-8') for sentence in pdf_sentences))
         parser = PlaintextParser.from_string(pdf_string, Tokenizer(LANGUAGE))
         stemmer = Stemmer(LANGUAGE)
