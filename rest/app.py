@@ -118,7 +118,7 @@ def generate(pdf_path):
         summarizer = pdfsummarizer.PDFSummarizer()
         results = summarizer.generate_summary(sentences)
         summary = results
-        logger.debug('summary:' + ''.join(summary)  )
+        logger.debug('summary:' + ''.join(summary))
         try:
             save_summary(pdf_path, summary)
         except Exception as ex:
