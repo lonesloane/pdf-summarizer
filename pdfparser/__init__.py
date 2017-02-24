@@ -4,12 +4,12 @@ import ConfigParser
 import logging
 
 # Get configuration parameters
-basedir = os.path.abspath(os.path.dirname(__file__))
-print('basedir: {}'.format(basedir))
+#basedir = os.path.abspath(os.path.dirname(__file__))
+#print('basedir: {}'.format(basedir))
 _config = ConfigParser.SafeConfigParser()
 if platform.system() == 'Windows':
-    print('WINDOWS: {}'.format(os.path.join(basedir, 'config\pdfsummarizer.conf')))
-    _config.read(os.path.join(basedir, 'config\pdfsummarizer.conf'))
+#    print('WINDOWS: {}'.format(os.path.join(basedir, 'config\pdfsummarizer.conf')))
+    _config.read(os.path.join('config\pdfsummarizer.conf'))
 if platform.system() == 'Linux':
     print('LINUX')
     _config.read('config/linux-pdfsummarizer.conf')
@@ -31,4 +31,4 @@ logger.addHandler(ch)
 _log_level = 1  # verbosity of log. 1:debug - 2:verbose - 3:visual
 
 logger.info('Logging object initialized with log level {level}'.format(level=_log_level))
-logger.info('basedir: {}'.format(basedir))
+#logger.info('basedir: {}'.format(basedir))

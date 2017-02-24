@@ -96,7 +96,7 @@ def generate_summary(info):
     """
     jt, folder_structure, pdf_path = info[0], info[1], info[2]
     proc_logger, log_file_handler = configure_logger()
-    output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.txt'
+    output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.json'
     with open(output_file, mode='wb') as out_file:
         log_begin_process(jt, pdf_path, proc_logger)
         try:
@@ -109,8 +109,7 @@ def generate_summary(info):
             proc_logger.debug("Nb sentences extracted: {}".format(len(sentences)))
             summarizer = pdfsummarizer.PDFSummarizer()
             results = summarizer.generate_summary(sentences)
-            for sentence in results:
-                out_file.write(sentence._text.encode('utf-8') + '\n\n')
+            out_file.write(results)
 
             log_end_process(jt, proc_logger)
         except Exception:
