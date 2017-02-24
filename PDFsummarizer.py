@@ -17,11 +17,13 @@ from pdfparser import logger, _config
 
 PDF_ROOT_FOLDER = _config.get('SUMMARIZER', 'PDF_ROOT_FOLDER')
 OUTPUT_FOLDER = _config.get('SUMMARIZER', 'OUTPUT_FOLDER')
+REST_OUTPUT_FOLDER = _config.get('REST', 'OUTPUT_FOLDER')
 EXTRACT_MODE = text_extractor.ExtractMode.LAYOUT
 EXTRACT_SUMMARY = _config.getboolean('SUMMARIZER', 'EXTRACT_SUMMARY')
 NB_PROCESSES = _config.getint('SUMMARIZER', 'NB_PROCESSES')
 CHUNK_SIZE = _config.getint('SUMMARIZER', 'CHUNK_SIZE')
 
+target, start_folder = None, None
 
 def generate_summaries():
     """
@@ -38,50 +40,12 @@ def generate_summaries():
     try:
         logger.info('Begin processing files. Chunk size = {}'.format(CHUNK_SIZE))
         # TODO: there's got to be a better way than this!!!
-        for _ in pool.imap_unordered(generate_summary, parse_folders(), chunksize=CHUNK_SIZE):
+        for _ in pool.imap_unordered(generate_summary, parse_folders(start_folder), chunksize=CHUNK_SIZE):
             pass
     finally:
         #  Always good practice to do a little cleanup
         pool.close()
         pool.join()
-
-
-def parse_folders():
-    """
-    Generator function which produces information about the pdf files found under PDF_ROOT_FOLDER
-
-
-    :return: Tuple (jt, folder_structure, pdf_path)
-    """
-    nb_processed_files = 0
-    for root, dirs, files_list in os.walk(get_pdf_folder()):
-        for pdf_file in files_list:
-            if os.path.isfile(os.path.join(root, pdf_file)):
-                jt, extension = pdf_file.split('.')[0], pdf_file.split('.')[1]
-                if extension.lower() != 'pdf':
-                    logger.debug('{} is not a pdf'.format(pdf_file))
-                    continue
-                pdf_path = os.path.join(root, pdf_file)
-                folder_structure = root
-                if '\\' in root:
-                    folder_structure = root[2:].replace('\\', "_")
-                else:
-                    folder_structure = ''
-                logger.debug('folder_structure: {}'.format(folder_structure))
-                nb_processed_files += 1
-                if nb_processed_files % 100 == 0:
-                    logger.info('{} files analyzed...'.format(nb_processed_files))
-                yield (jt, folder_structure, pdf_path)
-            else:
-                logger.debug('{}/{} is not a file'.format(root, pdf_file))
-
-
-def get_pdf_folder():
-    start_folder = get_arguments()
-    pdf_folder = PDF_ROOT_FOLDER
-    if start_folder:
-        pdf_folder = os.path.join(PDF_ROOT_FOLDER, start_folder)
-    return pdf_folder
 
 
 def generate_summary(info):
@@ -96,7 +60,7 @@ def generate_summary(info):
     """
     jt, folder_structure, pdf_path = info[0], info[1], info[2]
     proc_logger, log_file_handler = configure_logger()
-    output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.json'
+    output_file = get_output_file(info)
     with open(output_file, mode='wb') as out_file:
         log_begin_process(jt, pdf_path, proc_logger)
         try:
@@ -121,6 +85,72 @@ def generate_summary(info):
             log_file_handler.flush()
             log_file_handler.close()
             proc_logger.removeHandler(log_file_handler)
+
+
+def get_output_file(info):
+    jt, folder_structure, pdf_path = info[0], info[1], info[2]
+    logger.debug('[get_output_file] target: {}, jt: {}, folder_structure: {}, pdf_path: {}'.format(target, jt, folder_structure, pdf_path))
+    if target == 'bulk':
+        output_file = OUTPUT_FOLDER + 'summary_' + folder_structure + '_' + jt + '.json'
+    elif target == 'rest':
+        complete_folder = create_folders(folder_structure)
+        output_file = os.path.join(complete_folder, jt + '.json')
+    else:
+        raise Exception('Invalid target value. Unable to generate output file')
+    return output_file
+
+
+def create_folders(pdf_path):
+    complete_folder = REST_OUTPUT_FOLDER
+    folder_structure = pdf_path.split('_')
+    for folder in folder_structure:
+        complete_folder += '/' + folder
+        if os.path.exists(complete_folder):
+            logger.debug('{} already exists'.format(complete_folder))
+        else:
+            logger.debug('{} does not exist. Creating.'.format(complete_folder))
+            os.mkdir(complete_folder)
+    logger.debug('[create_folders] complete folder: {}'.format(complete_folder))
+    return complete_folder
+
+
+def parse_folders(start_folder=None):
+    """
+    Generator function which produces information about the pdf files found under PDF_ROOT_FOLDER
+
+
+    :return: Tuple (jt, folder_structure, pdf_path)
+    """
+    nb_processed_files = 0
+    for root, dirs, files_list in os.walk(get_pdf_folder(start_folder)):
+        for pdf_file in files_list:
+            if os.path.isfile(os.path.join(root, pdf_file)):
+                jt, extension = pdf_file.split('.')[0], pdf_file.split('.')[1]
+                if extension.lower() != 'pdf':
+                    logger.debug('{} is not a pdf'.format(pdf_file))
+                    continue
+                pdf_path = os.path.join(root, pdf_file)
+                folder_structure = root
+                logger.debug('root: {}'.format(folder_structure))
+                if '\\' in root:
+                    folder_structure = root[2:].replace('\\', "_")
+                else:
+                    # 34 = len('/media/stephane/Storage/OECD/pdfs/')
+                    folder_structure = root[34:].replace('/', "_")
+                logger.debug('folder_structure: {}'.format(folder_structure))
+                nb_processed_files += 1
+                if nb_processed_files % 100 == 0:
+                    logger.info('{} files analyzed...'.format(nb_processed_files))
+                yield (jt, folder_structure, pdf_path)
+            else:
+                logger.debug('{}/{} is not a file'.format(root, pdf_file))
+
+
+def get_pdf_folder(start_folder=None):
+    pdf_folder = PDF_ROOT_FOLDER
+    if start_folder:
+        pdf_folder = os.path.join(PDF_ROOT_FOLDER, start_folder)
+    return pdf_folder
 
 
 def configure_logger():
@@ -155,19 +185,27 @@ def get_arguments():
     Folder: appended to the PDF_ROOT_FOLDER to allow for more "selective" runs
     :return:
     """
+
+    target, folder = None, None
     parser = argparse.ArgumentParser(
         description='Generate summaries for pdf files in specified folder and sub-folders'
     )
-    # Add argument
+    # Target, i.e. Rest Service or Bulk Import
+    parser.add_argument(
+        '-t', '--target', type=str, help='Target mode: rest (default) or bulk', required=False
+    )
+    # PDFs folder
     parser.add_argument(
         '-f', '--folder', type=str, help='Root folder for pdf files', required=False
     )
     args = parser.parse_args()
     if args.folder:
         folder = args.folder
-        logger.info("Processing folder {}".format(folder))
-        return folder
-    return None
+        logger.info("Folder argument: {}".format(folder))
+    if args.target:
+        target = args.target
+        logger.info("Target argument: {}".format(target))
+    return target, folder
 
 
 def log_end_process(jt, proc_logger):
@@ -254,4 +292,6 @@ def extract_sentences(pdf_text):
 if __name__ == '__main__':
     if platform.system() == 'Windows':
         freeze_support()  # required on windows platform to allow multi-processing
+
+    target, start_folder = get_arguments()
     sys.exit(generate_summaries())
