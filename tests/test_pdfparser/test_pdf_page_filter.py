@@ -209,7 +209,11 @@ class PdfPageFilterTestCase(unittest.TestCase):
         actual = filter.PDFPageFilter().match_classification(txt_0 + txt + txt_1)
         self.assertEqual(expected, actual)
 
-        txt = u'any disclosure of taxpayer information by a competent authority to the members of the arbitration \npanel  would  be  made  pursuant  to  the  authority  of  the  Convention  and  subject  to  confidentiality \nrequirements  that  are  at  least  as  strong  as  those  applicable  to  the  competent  authorities.  An \nexpress provision in the text of the Convention itself, with a cross-reference to Article 26, would \nensure the legal status of the arbitrators. \n'
+        txt = u'any disclosure of taxpayer information by a competent authority to the members of the arbitration \n' \
+              u'panel  would  be  made  pursuant  to  the  authority  of  the  Convention  and  subject  to  ' \
+              u'confidentiality \nrequirements  that  are  at  least  as  strong  as  those  applicable  to  the  ' \
+              u'competent  authorities.  An \nexpress provision in the text of the Convention itself, with a ' \
+              u'cross-reference to Article 26, would \nensure the legal status of the arbitrators. \n'
         expected = 0
         actual = filter.PDFPageFilter().match_classification(txt)
         self.assertEqual(expected, actual, "Shouldn't match classification pattern")

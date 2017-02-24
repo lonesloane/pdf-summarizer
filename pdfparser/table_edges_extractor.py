@@ -12,6 +12,9 @@ class Cell:
     _TEXT_MIN_FRACTION_SIZE = _config.getfloat('MAIN', 'TEXT_MIN_FRACTION_SIZE')
 
     def __init__(self, x0, y0, x1, y1, rows=1, columns=1, logger=None):
+        # todo: review this dynamic import
+        if not logger:
+            from pdfparser import logger
         self.logger = logger
         self.x0 = x0
         self.y0 = y0

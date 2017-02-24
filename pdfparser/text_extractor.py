@@ -407,24 +407,25 @@ class PDFTextExtractor:
                             self.logger.debug(u'continued. p[0]:{p}'.format(p=p))
                             self.logger.debug(u'adding previous. :{p}'.format(p=self.previous_p))
                         self.previous_p = self.previous_p + ' ' + p
-                        continue
+                        p = self.previous_p
+                        #continue
                     else:
                         if _log_level > 1:
                             self.logger.debug(u'not continued. p[0]:{p}'.format(p=p))
                             self.logger.debug(u'adding leftover. :{p}'.format(p=self.previous_p))
-                        # if self.previous_p[:-1] != '.':
-                        #     self.previous_p += '.'
                         content_list.append(self.previous_p)
                         self.previous_p = p
+                        continue
                 else:
                     if _log_level > 2:
-                        self.logger.debug('p[-1]: '+p[:-1])
-                    if re.match('[.!?]]', p[-1]):
+                        self.logger.debug('p[-1]: '+p)
+                    if re.match('[\.\!\?\]]', p[-1]):
                         content_list.append(p)
                         self.previous_p = None
+                        continue
                     else:
                         self.previous_p = p
-                    continue
+                        continue
 
                 # Only for last of page and first of next page...(i.e. if there are notes, we're screwed!!!)
                 if i == (len(fragment_txt)-1) and not re.match(ptrn_punct, p[-1]) and not re.match('[0-9]+ \w+.*', p):
@@ -438,10 +439,10 @@ class PDFTextExtractor:
                         self.logger.debug(u'[END] match(ptrn_punct): {m}'.format(m=re.match(ptrn_punct, p[-1])))
                         self.logger.debug(u'[END] match(ptrn_start_with_number): {m}'.format(m=re.match('[0-9]+ \w+.*', p)))
                         self.logger.debug(u'[END] {i}th sentence: {p}'.format(i=i, p=p))
-                    content_list.append(p)
+                    #content_list.append(p)
                     self.previous_p = None
 
-                # content_list.append(p)
+                content_list.append(p)
         else:
             for p in fragment_txt:
                 p = re.sub('(?<!\.)\n(?![A-Z])', ' ', p)

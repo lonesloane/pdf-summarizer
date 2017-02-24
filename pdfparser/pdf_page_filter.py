@@ -109,9 +109,16 @@ class PDFPageFilter:
         :param txt:
         :return:
         """
-        ptrn_classif = re.compile('For Official Use|Confidential|Unclassified|A Usage Officiel'
-                                  '|Confidentiel|Non classifi.{1,2}|Diffusion Restreinte|Restricted Diffusion'
-                                  '|Restricted|general distribution', re.IGNORECASE)
+        ptrn_classif = re.compile('[^a-zA-Z0-9_]?For Official Use[^a-zA-Z0-9_]?'
+                                  '|[^a-zA-Z0-9_]?Confidential[^a-zA-Z0-9_]?|'
+                                  '[^a-zA-Z0-9_]?Unclassified[^a-zA-Z0-9_]?|'
+                                  '[^a-zA-Z0-9_]?A Usage Officiel[^a-zA-Z0-9_]?'
+                                  '[^a-zA-Z0-9_]?|Confidentiel[^a-zA-Z0-9_]?|'
+                                  '[^a-zA-Z0-9_]?Non classifi.{1,2}[^a-zA-Z0-9_]?|'
+                                  '[^a-zA-Z0-9_]?Diffusion Restreinte[^a-zA-Z0-9_]?|'
+                                  '[^a-zA-Z0-9_]?Restricted Diffusion[^a-zA-Z0-9_]?'
+                                  '|[^a-zA-Z0-9_]?Restricted[^a-zA-Z0-9_]?'
+                                  '|[^a-zA-Z0-9_]?general distribution[^a-zA-Z0-9_]?')
         if re.search(ptrn_classif, txt):
             self.logger.debug(u'Classification found: {frag}'.format(frag=txt))
             return 1

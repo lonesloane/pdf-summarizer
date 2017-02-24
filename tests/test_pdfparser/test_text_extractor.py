@@ -207,7 +207,8 @@ class TextExtractorTestCase(unittest.TestCase):
         text = text_extractor.contents[FragmentType.TEXT]
         print 'text: {t}'.format(t=text)
         self.assertEquals(1, len(text))
-        self.assertEquals('Representatives of other international organisations, including UNCTAD, UNESCO and IUCN, were invited to intervene and report about their activities as appropriate during the meeting.', text[0])
+        self.assertEquals('Representatives of other international organisations, including UNCTAD, UNESCO and IUCN, '
+                          'were invited to intervene and report about their activities as appropriate during the meeting.', text[0])
 
     def test_add_fragment(self):
         fragment_text = list()
@@ -220,7 +221,7 @@ class TextExtractorTestCase(unittest.TestCase):
         text_extractor = extractor.PDFTextExtractor()
         text_extractor.add_fragment(fragment_text, FragmentType.TEXT)
         text = text_extractor.contents[FragmentType.TEXT]
-        print text
+        print 'text: {t}'.format(t=text)
         self.assertEquals(4, len(text))
         self.assertEquals('An incomplete sentence continued in the next fragment.', text[1])
         self.assertEquals('Another incomplete sentence also continued. And followed by another complete sentence.', text[2])
@@ -266,7 +267,7 @@ class TextExtractorTestCase(unittest.TestCase):
         text_extractor = extractor.PDFTextExtractor()
         text_extractor.add_fragment(fragment_text, FragmentType.TEXT)
         text = text_extractor.contents[FragmentType.TEXT]
-        print text
+        print 'text: {t}'.format(t=text)
         self.assertEquals(3, len(text))
         self.assertEquals('Another incomplete sentence also continued. And followed by another complete sentence.', text[2])
 
