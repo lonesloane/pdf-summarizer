@@ -151,9 +151,9 @@ def parse_files():
 
 def summary_available(info):
     if os.path.isfile(get_output_file(info)):
-        logger.debug('File found')
+        logger.debug('Summary file found')
         return True
-    logger.debug('File not found')
+    logger.debug('Summary file not found')
     return False
 
 
