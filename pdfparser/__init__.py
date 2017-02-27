@@ -8,9 +8,12 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 print('basedir: {}'.format(basedir))
 _config = ConfigParser.SafeConfigParser()
 if platform.system() == 'Windows':
+    print('Windows platform')
     if '.zip' not in basedir:
+        print ("no zip found")
         _config.read(os.path.join(basedir, 'config\pdfsummarizer.conf'))
     else:
+        print('zip found')
         _config.read(os.path.join('config\pdfsummarizer.conf'))
 if platform.system() == 'Linux':
     _config.read(os.path.join(basedir, 'config/linux-pdfsummarizer.conf'))

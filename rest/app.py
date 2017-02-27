@@ -135,11 +135,13 @@ def generate(pdf_path):
 
 
 def load_saved_summary(pdf_path):
-    summary = None
     if not os.path.isfile(os.path.join(OUTPUT_FOLDER, pdf_path)):
         logger.debug('Previously generated summary not found for {}'.format(os.path.join(OUTPUT_FOLDER, pdf_path)))
         return None
     logger.debug('Previously generated summary found for {}'.format(pdf_path))
+    if not os.path.getsize(os.path.join(OUTPUT_FOLDER, pdf_path)) > 0:
+        logger.debug('Previously generated summary empty.')
+        return ' '
     with open(os.path.join(OUTPUT_FOLDER, pdf_path), mode='rb') as in_file:
         summary = in_file.read()
     return summary
