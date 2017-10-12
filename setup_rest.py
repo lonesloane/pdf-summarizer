@@ -29,8 +29,10 @@ setup(
     description='REST service used to generate summaries from pdf files.',
     options={
             "py2exe": {
+                    "compressed": 2,
+                    "optimize": 2,
                     "excludes": ["Tkconstants", "Tkinter", "tcl", "jinja2.asyncsupport"],
-                    "skip_archive": True
+                    "skip_archive": False
                 }
         },
     data_files=[('stopwords', ['data/stopwords/english.txt', 'data/stopwords/french.txt']),

@@ -6,4 +6,4 @@ from pdfparser import _config
 if __name__ == '__main__':
     host = _config.get('REST', 'HOST')
     port = _config.get('REST', 'PORT')
-    rest_api.app.run(host=host, port=int(os.environ.get("PORT", port)), debug=False)
+    rest_api.app.run(threaded=True, host=host, port=int(os.environ.get("PORT", port)), debug=False)
